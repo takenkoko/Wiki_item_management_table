@@ -31,16 +31,15 @@ except gspread.exceptions.WorksheetNotFound:
 
 #各ファイルとカテゴリ名リスト
 WIKI_JSON_FILES = [
-    {"path": r"C:\Users\Takemo\wiki_data_op.json", "category":"オペレーター"},
-    {"path": r"C:\Users\Takemo\wiki_data.json", "category": "武器"},
-    {"path": r"C:\Users\Takemo\wiki_data2.json", "category": "アイテム記録"},
-    {"path": r"C:\Users\Takemo\wiki_data3.json", "category": "貴重品倉庫"},
-    {"path": r"C:\Users\Takemo\wiki_data4.json", "category": "設備"},
-    {"path": r"C:\Users\Takemo\wiki_data5.json", "category": "装備"},
-    {"path": r"C:\Users\Takemo\wiki_data6.json", "category": "基質"},
-    {"path": r"C:\Users\Takemo\wiki_data7.json", "category": "脅威"},
-    {"path": r"C:\Users\Takemo\wiki_data8.json", "category": "システム図面"},
-    {"path": r"C:\Users\Takemo\wiki_data9.json", "category": "オペレーター攻略"}
+    {"path": "wiki_data.json", "category": "武器"},
+    {"path": "wiki_data2.json", "category": "アイテム記録"},
+    {"path": "wiki_data3.json", "category": "貴重品倉庫"},
+    {"path": "wiki_data4.json", "category": "設備"},
+    {"path": "wiki_data5.json", "category": "装備"},
+    {"path": "wiki_data6.json", "category": "基質"},
+    {"path": "wiki_data7.json", "category": "脅威"},
+    {"path": "wiki_data8.json", "category": "システム図面"},
+    {"path": "wiki_data9.json", "category": "オペレーター攻略"}
 ]
 
 #【追加】Discordにメッセージを送信する関数

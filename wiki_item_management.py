@@ -17,7 +17,7 @@ SPREADSHEET_ID ="YOUR_SPREADSHEET_ID_HERE"
 SHEET_NAME="シート1"
 
 #Discordのwebhook URL
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/1516618869425438871/AghXXfCuvWZWzQyhrFTaQKW3eYk56PAhtysjcSq6zx3Kr4FZguE4GJjdrJcNwiy-Nza7"
+DISCORD_WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL_HERE"
 
 #GoogleシートAPTの認証とスプレッドシートの接続
 gc = gspread.service_account(filename=JSON_KEY_FILE)

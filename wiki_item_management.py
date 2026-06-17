@@ -12,8 +12,8 @@ from gspread_formatting import(
 )
 
 #各種設定（パスやID）
-JSON_KEY_FILE = r"C:\Users\Takemo\Wiki-bot\arcane-pillar-499206-t1-a20f2ba0dd5b.json"
-SPREADSHEET_ID ="1ufrU34QtaIDT4iGYmkE27PltBDB6yuWO00kZpurcUuo"
+JSON_KEY_FILE = r"credentials.json"
+SPREADSHEET_ID ="YOUR_SPREADSHEET_ID_HERE"
 SHEET_NAME="シート1"
 
 #Discordのwebhook URL

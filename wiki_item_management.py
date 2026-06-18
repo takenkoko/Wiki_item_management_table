@@ -5,14 +5,19 @@ import gspread
 from gspread_formatting import(
     batch_updater,
     CellFormat,
-    Color,
-    TextFormat,
+  　color,
+    textFormat,
     Borders,
-    Border
+    Border,
+    format_cell_ranges
 )
+# 💡プログラム（main.py）がある位置から見た「プロジェクトのルート（一番上の階層）」を自動計算
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 🔑Googleの秘密鍵の場所を正しく指定
+JSON_KEY_FILE = os.path.join(BASE_DIR, "config", "secret_key.json")
 
 #各種設定（パスやID）
-JSON_KEY_FILE = r"credentials.json"
 SPREADSHEET_ID ="YOUR_SPREADSHEET_ID_HERE"
 SHEET_NAME="シート1"
 
@@ -31,17 +36,16 @@ except gspread.exceptions.WorksheetNotFound:
 
 #各ファイルとカテゴリ名リスト
 WIKI_JSON_FILES = [
-    {"path": "wiki_data.json", "category": "武器"},
-    {"path": "wiki_data2.json", "category": "アイテム記録"},
-    {"path": "wiki_data3.json", "category": "貴重品倉庫"},
-    {"path": "wiki_data4.json", "category": "設備"},
-    {"path": "wiki_data5.json", "category": "装備"},
-    {"path": "wiki_data6.json", "category": "基質"},
-    {"path": "wiki_data7.json", "category": "脅威"},
-    {"path": "wiki_data8.json", "category": "システム図面"},
-    {"path": "wiki_data9.json", "category": "オペレーター攻略"}
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data.json"), "category": "武器"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data2.json"), "category": "アイテム記録"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data3.json"), "category": "貴重品倉庫"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data4.json"), "category": "設備"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data5.json"), "category": "装備"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data6.json"), "category": "基質"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data7.json"), "category": "脅威"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data8.json"), "category": "システム図面"},
+    {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data9.json"), "category": "オペレーター攻略"}
 ]
-
 #【追加】Discordにメッセージを送信する関数
 def send_discord_notification(message):
     if not DISCORD_WEBHOOK_URL or "あなたのURL" in DISCORD_WEBHOOK_URL:

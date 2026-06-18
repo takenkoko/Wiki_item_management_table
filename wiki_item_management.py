@@ -166,9 +166,8 @@ def main():
     all_items_list = []
     seen_ids = set()
 
-    # 9つのファイルをすべて巡回
+    # 1. すべてのJSONファイルからデータを集めるループ
     for file_info in WIKI_JSON_FILES:
-        # ファイルパスの指定漏れを修正しました
         item_from_file = exctract_all_items_from_file(file_info["path"], file_info["category"])
 
         for row in item_from_file:
@@ -178,20 +177,20 @@ def main():
             seen_ids.add(raw_id)
             all_items_list.append(row)
             
-        if not all_items_list:
-            print("アイテムが見つかりません。")
-            return
+    if not all_items_list:
+        print("アイテムが見つかりません。")
+        return
 
-        #【追加】ループが終わった安全な場所で、一気に件数を数え上げます
-        count_done=0
-        count_todo=0
-        for row in all_items_list:
-            if row[3]=="完了":
-                count_done += 1
-            else:
-                count_todo += 1
+    # 全体の完了・未完了件数をカウント
+    count_done = 0
+    count_todo = 0
+    for row in all_items_list:
+        if row[3] == "完了":
+            count_done += 1
+        else:
+            count_todo += 1
     
-    total_count=len(all_items_list)
+    total_count = len(all_items_list)
     print(f"結合完了！全アイテムデータを重複なしで【{len(all_items_list)}件】検出しました")
     print("Googleのスプレッドシートへ入力中…")
 
@@ -204,122 +203,134 @@ def main():
     
     try:
         header = [["ID", "名前", "カテゴリ", "状況", "確認URL"]]
-        all_rows = header + all_items_list  # 「+」で結合するように修正しました
+        all_rows = header + all_items_list
 
-        # 新しいシートをクリアして全一括更新
         sheet.clear()
         sheet.update(values=all_rows, range_name="A1")
 
-        #【追加】G列ーH列に進捗集計表のデータを書き込む
-        sumary_table=[
-            ["進捗状況","件数"],
-            ["完了",count_done],
-            ["未完了",count_todo],
-            ["合計",total_count]
+        summary_table = [
+            ["進捗状況", "件数"],
+            ["完了", count_done],
+            ["未完了", count_todo],
+            ["合計", total_count]
         ]
 
-        # 完了＝緑、未完了＝赤の処理
         print("完了（緑）、未完了（赤）のデザイン運用中…")
         
-        thin_border = Border(style="SOLID", color=Color(0.8, 0.8, 0.8))
+        # 💡 ここでgspread_formattingの正式なお作法（オブジェクト）を作成します
+        from gspread_formatting import CellFormat, textFormat
+
+        thin_border = Border(style="SOLID", color=color(0.8, 0.8, 0.8))
         all_borders = Borders(top=thin_border, bottom=thin_border, left=thin_border, right=thin_border)
         
-        # 色の定義（大文字のColorに修正）
-        GREEN_BG = Color(0.85, 0.93, 0.85)
-        RED_BG = Color(0.96,0.86, 0.86)
+        GREEN_BG = color(0.85, 0.93, 0.85)
+        RED_BG = color(0.96, 0.86, 0.86)
 
-        #速度制限対策：色ごとにぬるべき行番号のリストをあらかじめ作ります
-        done_rows=[]
-        todo_rows=[]
+        done_rows = []
+        todo_rows = []
 
-        for idx, row_data in enumerate(all_items_list,start=2):
-            if row_data[3]=="完了":
+        for idx, row_data in enumerate(all_items_list, start=2):
+            if row_data[3] == "完了":
                 done_rows.append(idx)
             else:
                 todo_rows.append(idx)
 
         with batch_updater(sheet.spreadsheet) as batch:
 
-            # ①ヘッダー行のデザイン（黒、白）
+            # ①ヘッダー行のデザイン（黒、白）を正式なCellFormatで定義
             header_format = CellFormat(
-                backgroundColor=Color(0.26, 0.26, 0.26),
-                textFormat=TextFormat(foregroundColor=Color(1, 1, 1), bold=True, fontSize=11),
+                backgroundColor=color(0.26, 0.26, 0.26),
+                textFormat=textFormat(foregroundColor=color(1.0, 1.0, 1.0), bold=True, fontSize=11),
                 horizontalAlignment="CENTER",
                 borders=all_borders
             )
             batch.format_cell_range(sheet, "A1:E1", header_format)
 
-            #②【追加】右側の集計表ヘッダー行のデザイン(G1:H1)を同じく青色
-            batch.format_cell_range(sheet,"G1:H1",header_format)
+            # ②右側の集計表ヘッダー行のデザイン(G1:H1)
+            batch.format_cell_range(sheet, "G1:H1", header_format)
 
-            #③【追加】集計表の中身（G2:H4）のデザイン
-            summary_body_format=CellFormat(
-                backgroundColor=Color(1,1,1),
-                textFormat=TextFormat(bold=False,fontSize=10),
+            # ③集計表の中身（G2:H4）のデザイン
+            summary_body_format = CellFormat(
+                backgroundColor=color(1.0, 1.0, 1.0),
+                textFormat=textFormat(bold=False, fontSize=10),
                 horizontalAlignment="CENTER",
                 borders=all_borders
-
             )
-            batch.format_cell_range(sheet,"G2:H4",summary_body_format)
+            batch.format_cell_range(sheet, "G2:H4", summary_body_format)
 
-            #合計行(G4:H4)だけ太文字にする
-            total_row_format=CellFormat(
-                backgroundColor=Color(0.95,0.95,0.95),#ほんの薄いグレー
-                textFormat=TextFormat(bold=True,fontSize=10),
+            # 合計行(G4:H4)だけ太文字にする
+            total_row_format = CellFormat(
+                backgroundColor=color(0.95, 0.95, 0.95),
+                textFormat=textFormat(bold=True, fontSize=10),
                 borders=all_borders
             )
-            batch.format_cell_range(sheet,"G4:H4",total_row_format)
+            batch.format_cell_range(sheet, "G4:H4", total_row_format)
             
-            #修正　正しいフォーマットでえ一括色塗りリクエストを組み立てる
-            pairs=[]
-            #完了の行をリストに追加
+            pairs = []
+            
+            # 「完了」の行をリストに追加
             if done_rows:
-                cender_green=CellFormat(backgroundColor=GREEN_BG,horizontalAlignment="CENTER",borders=all_borders)
-                left_green=CellFormat(backgroundColor=GREEN_BG,horizontalAlignment="LEFT",borders=all_borders)
-                
+                center_green = CellFormat(backgroundColor=GREEN_BG, horizontalAlignment="CENTER", borders=all_borders)
+                left_green = CellFormat(backgroundColor=GREEN_BG, horizontalAlignment="LEFT", borders=all_borders)
                 for r in done_rows:
-                    todo_ranges=[f"A{r}:D{r}" for r in todo_rows]
-                    todo_e_ranges=[f"E{r}"for r in todo_rows]
-            
+                    pairs.append((f"A{r}:D{r}", center_green))
+                    pairs.append((f"E{r}", left_green))
 
-                #「未完了」の行をまとめて色塗り
-                if todo_rows:
-                    todo_ranges=[f"A{r}:D{r}" for r in todo_rows]
-                    todo_e_ranges=[f"E{r}"for r in todo_rows]
+            # 「未完了」の行をリストに追加
+            if todo_rows:
+                center_red = CellFormat(backgroundColor=RED_BG, horizontalAlignment="CENTER", borders=all_borders)
+                left_red = CellFormat(backgroundColor=RED_BG, horizontalAlignment="LEFT", borders=all_borders)
+                for r in todo_rows:
+                    pairs.append((f"A{r}:D{r}", center_red))
+                    pairs.append((f"E{r}", left_red))
 
-                    center_red = CellFormat(backgroundColor=RED_BG, horizontalAlignment="CENTER", borders=all_borders)
-                    left_red = CellFormat(backgroundColor=RED_BG, horizontalAlignment="LEFT", borders=all_borders)
-                
-                    for r in todo_rows:
-                        pairs.append((f"A{r}:D{r}", center_red))
-                        pairs.append((f"E{r}", left_red))
-
-                if pairs:
-                    batch.format_cell_ranges(sheet,pairs)
+            # 正式なフォーマットオブジェクトが1件でもあればGoogleへ送信
+            if pairs:
+                batch.format_cell_ranges(sheet, pairs)
         
-                summary_table=[
-                    ["進捗状況","件数"],
-                    ["完了",count_done],
-                    ["未完了",count_todo],
-                    ["合計",total_count]
-                ]
-                sheet.update(values=summary_table,range_name="G1:H4")
-
-
+        # 集計表の数値を書き込み
+        sheet.update(values=summary_table, range_name="G1:H4")
         
+        print("シートの説明文を書き込んでいます...")
+
+        # シートG6～G11まで文字を流し込む
+        sheet.update_acell('G6', 'このシートについて')
+        sheet.update_acell('G7', '※このシートはPythonで作られています。')
+        sheet.update_acell('G8', '※表を確認し、編集に取り組んでください。緑色は編集完了、赤色は未編集です。')
+        sheet.update_acell('G9', '※確認URLをクリックしますと、状況を確認することができます。')
+        sheet.update_acell('G10', '※シートはいじらないようにしてください。編集完了するとDeveloperが自動更新します。')
+        sheet.update_acell('G11', '※右の表を確認しますと、進捗状況と件数を確認することができます。')
+
+        print("説明文のデザインを整えています...")
         
-        success_msg=f"✅すべてのファイルの統合、およびスプレッドシートの自動色分け完了しました！"
+        info_header_format = CellFormat(
+            backgroundColor=color(1.0, 0.92, 0.65),  # 薄い黄色
+            textFormat=textFormat(bold=True, foregroundColor=color(0.0, 0.0, 0.0))
+        )
+        info_body_format = CellFormat(
+            backgroundColor=color(1.0, 1.0, 1.0),  # 白背景
+            textFormat=textFormat(foregroundColor=color(0.0, 0.0, 0.0))
+        )
+
+        # 6行目を黄色見出し、7〜11行目を白背景に装飾
+        format_cell_ranges(sheet, [
+            ("G6:L6", info_header_format),
+            ("G7:L11", info_body_format)
+        ])
+    
+        print("説明文の自動生成が全て完了しました！")
+
+        success_msg = f"✅すべてのファイルの統合、およびスプレッドシートの自動色分け完了しました！"
         print(success_msg)
 
-        #[追加]色分けが100%完了した直後、Discordへ通知を飛ばします
+        # Discordへ通知を飛ばします
         send_discord_notification(success_msg)
         
-        #[★新機能]完了したらURLブラウザを画面に表示する
-        spreadsheet_url=f"https://docs.google.com/spreadsheets/d/1ufrU34QtaIDT4iGYmkE27PltBDB6yuWO00kZpurcUuo/edit?gid=0#gid=0"
+        spreadsheet_url = f"https://docs.google.com/spreadsheets/d/1ufrU34QtaIDT4iGYmkE27PltBDB6yuWO00kZpurcUuo/edit?gid=0#gid=0"
         print(f"➡スプレッドシートを確認する{spreadsheet_url}")
 
-        #Discord送信用
-        discord_msg=f"☛スプレッドシートの自動更新が完了しました!\n **現在の進捗状況**\n・完了：{count_done}件\n・未完了：{count_todo}件\n・全体の合計{total_count}件\n 確認：{spreadsheet_url}"
+        # Discord送信用
+        discord_msg = f"☛スプレッドシートの自動更新が完了しました!\n **現在の進捗状況**\n・完了：{count_done}件\n・未完了：{count_todo}件\n・全体の合計{total_count}件\n 確認：{spreadsheet_url}"
         send_discord_notification(discord_msg)
 
     except Exception as e:

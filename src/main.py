@@ -238,7 +238,8 @@ def main():
                 done_rows.append(idx)
             else:
                 todo_rows.append(idx)
-
+                
+        #batch_updaterを使用した一括リクエスト（バルク処理）へ最適化
         with batch_updater(sheet.spreadsheet) as batch:
 
             # ①ヘッダー行のデザイン（黒、白）を正式なCellFormatで定義

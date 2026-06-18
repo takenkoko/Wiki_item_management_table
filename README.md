@@ -24,27 +24,20 @@ Python 3.14.5
 - `gspread`
 - `gspread-formatting`
 
-```bash
-pip install gspread gspread-formatting
 
-フォルダ作成
+
+
+```bash
 Wiki_item_management_table/
-│
-├── .gitignore               # GitHub等に秘密鍵をアップロードしないための設定
-├── README.md                # 仕様書・ドキュメント（先ほどの画像のもの）
-├── requirements.txt         # 必須ライブラリの一覧（gspread等）
-│
+├── .gitignore
+├── README.md
+├── requirements.txt
 ├── config/
-│   └── credentials.json
-│
+│   └── secret_key.json
 ├── data/
-│   └── raw_json/
-│       ├── wiki_data.json
-│       ├── wiki_data2.json
-│       └── ...
-│
-├── screenshots/
-│   └── spreadsheet.png
-│
+│   ├── raw_json/
+│   │   ├── item_weapon.json
+│   │   └── item_material.json
+│   └── output/
 └── src/
-    └── wiki_item_management.py
+    └── main.py

@@ -34,18 +34,17 @@ Wiki_item_management_table/
 ├── README.md                # 仕様書・ドキュメント（先ほどの画像のもの）
 ├── requirements.txt         # 必須ライブラリの一覧（gspread等）
 │
-├── config/                  # 【設定関係】
-│   └── secret_key.json      # Googleのサービスアカウントキー（絶対に外部に出さない）
+├── config/
+│   └── credentials.json
 │
-├── data/                    # 【データ置き場】
-│   ├── raw_json/            # 読み込む前の原材料（9つのJSONファイルなど）
-│   │   ├── item_weapon.json
-│   │   ├── item_material.json
-│   │   └── ...
-│   └── output/              # (任意) バックアップやログを出したい場合
+├── data/
+│   └── raw_json/
+│       ├── wiki_data.json
+│       ├── wiki_data2.json
+│       └── ...
 │
-└── src/                     # 【プログラム本体（ソースコード）】
-    ├── __init__.py          # Pythonにフォルダを認識させるための空ファイル
-    ├── main.py              # 全体を動かすメインスクリプト（def main(): がある場所）
-    ├── discord_notifier.py  # Discord通知専用の処理を分ける場合（将来用）
-    └── spreadsheet_utils.py # スプレッドシート操作専用の処理を分ける場合（将来用）
+├── screenshots/
+│   └── spreadsheet.png
+│
+└── src/
+    └── wiki_item_management.py

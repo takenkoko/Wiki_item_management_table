@@ -1,7 +1,15 @@
 # Wiki_item_management_table
 
-複数のJSONデータからアイテム情報を抽出し、重複なしでGoogleスプレッドシートへ自動同期・進捗の視覚化を行うPythonスクリプトです。
-ゲーム（アークナイツ：エンドフィールド等）のWiki編集チームにおける進捗管理の自動化を目的として開発しました。
+開発成果
+
+- 9種類のJSONファイルを統合
+- 1,000件以上のデータを自動管理
+- Google Sheets APIとの自動同期を実現
+- Batch UpdateによるAPI通信回数の最適化
+- Discord通知による運用自動化
+
+複数のJSONデータからアイテム情報を抽出し、重複なしでGoogleスプレッドシートへ自動同期・進捗の視覚化を行うPythonツールです。
+アークナイツ：エンドフィールドWiki編集では複数のJSONファイルを個別に確認する必要があり、編集状況の把握に時間がかかっていました。この課題を解決するため、データ統合・進捗管理・通知を自動化するPythonツールを開発しました。
 
 ##  主な機能・特徴
 * **大量データの一括統合:** 9つの異なるJSONファイルを巡回し、重複なしで1,000件超のデータを一瞬で抽出・結合します。
@@ -18,3 +26,26 @@ Python 3.14.5
 
 ```bash
 pip install gspread gspread-formatting
+
+フォルダ作成
+Wiki_item_management_table/
+│
+├── .gitignore               # GitHub等に秘密鍵をアップロードしないための設定
+├── README.md                # 仕様書・ドキュメント（先ほどの画像のもの）
+├── requirements.txt         # 必須ライブラリの一覧（gspread等）
+│
+├── config/                  # 【設定関係】
+│   └── secret_key.json      # Googleのサービスアカウントキー（絶対に外部に出さない）
+│
+├── data/                    # 【データ置き場】
+│   ├── raw_json/            # 読み込む前の原材料（9つのJSONファイルなど）
+│   │   ├── item_weapon.json
+│   │   ├── item_material.json
+│   │   └── ...
+│   └── output/              # (任意) バックアップやログを出したい場合
+│
+└── src/                     # 【プログラム本体（ソースコード）】
+    ├── __init__.py          # Pythonにフォルダを認識させるための空ファイル
+    ├── main.py              # 全体を動かすメインスクリプト（def main(): がある場所）
+    ├── discord_notifier.py  # Discord通知専用の処理を分ける場合（将来用）
+    └── spreadsheet_utils.py # スプレッドシート操作専用の処理を分ける場合（将来用）

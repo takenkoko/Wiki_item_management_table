@@ -1,16 +1,18 @@
 import json
 import os
-import urllib.request #Discordに通知を送るために追加
+import urllib.request
 import gspread
-from gspread_formatting import(
+from datetime import datetime #進捗率と更新日を追加
+from gspread_formatting import set_column_width
+from gspread_formatting import (
     batch_updater,
-    CellFormat,
-  　color,
-    textFormat,
+    color,              # 💡エラーの出ない小文字のcolorだけを使用します
+    TextFormat,
     Borders,
     Border,
     format_cell_ranges
 )
+
 # 💡プログラム（main.py）がある位置から見た「プロジェクトのルート（一番上の階層）」を自動計算
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,6 +29,16 @@ DISCORD_WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL_HERE"
 #GoogleシートAPTの認証とスプレッドシートの接続
 gc = gspread.service_account(filename=JSON_KEY_FILE)
 spreadsheet = gc.open_by_key(SPREADSHEET_ID)
+
+#======================
+#✨名前変更する機能を追加
+#======================
+workbook=gc.open_by_key(SPREADSHEET_ID)
+
+new_title="未処理リスト Ver0.2"
+workbook.update_title(new_title)
+
+print(f"スプレッドシートの名前を{new_title}に変更しました。")
 
 #指定したワークシートを開く
 try:
@@ -46,6 +58,7 @@ WIKI_JSON_FILES = [
     {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data8.json"), "category": "システム図面"},
     {"path": os.path.join(BASE_DIR, "data", "raw_json", "wiki_data9.json"), "category": "オペレーター攻略"}
 ]
+
 #【追加】Discordにメッセージを送信する関数
 def send_discord_notification(message):
     if not DISCORD_WEBHOOK_URL or "あなたのURL" in DISCORD_WEBHOOK_URL:
@@ -68,6 +81,7 @@ def send_discord_notification(message):
                 print("Discord通知で予期しないステータスが返しました:{res.staus}")
     except Exception as e:
         print(f"Dsicordへの通知中にエラーが発生しました：{e}")
+
 
 #指定されたJSONファイルから【全データ】を抽出したステータス判定
 def exctract_all_items_from_file(file_path, category_name):
@@ -212,11 +226,23 @@ def main():
         sheet.clear()
         sheet.update(values=all_rows, range_name="A1")
 
+#===========================================
+#ここに新しく進捗率、最終更新を追加しました。 
+#===========================================
+        progress_rate=(count_done/total_count*100)if total_count else 0
+        update_time=datetime.now().strftime("%Y/%m/%d %H:%M")
+        
+        #グラフ化の定義
+        filled=int(progress_rate//10)
+        progress_bar="█"*filled+"░"*(10-filled)
+        
         summary_table = [
             ["進捗状況", "件数"],
             ["完了", count_done],
             ["未完了", count_todo],
-            ["合計", total_count]
+            ["合計", total_count],
+            ["進捗率",f"{progress_bar} {progress_rate:.0f}%"],
+            ["最新更新", update_time]
         ]
 
         print("完了（緑）、未完了（赤）のデザイン運用中…")
@@ -224,7 +250,7 @@ def main():
         # 💡 ここでgspread_formattingの正式なお作法（オブジェクト）を作成します
         from gspread_formatting import CellFormat, textFormat
 
-        thin_border = Border(style="SOLID", color=color(0.8, 0.8, 0.8))
+        thin_border = Border(style="SOLID", color=color(0.0, 0.0, 0.0))
         all_borders = Borders(top=thin_border, bottom=thin_border, left=thin_border, right=thin_border)
         
         GREEN_BG = color(0.85, 0.93, 0.85)
@@ -238,7 +264,10 @@ def main():
                 done_rows.append(idx)
             else:
                 todo_rows.append(idx)
-                
+        
+        # 集計表の数値を書き込み
+        sheet.update(values=summary_table, range_name="G1:I6")        
+
         #batch_updaterを使用した一括リクエスト（バルク処理）へ最適化
         with batch_updater(sheet.spreadsheet) as batch:
 
@@ -252,7 +281,7 @@ def main():
             batch.format_cell_range(sheet, "A1:E1", header_format)
 
             # ②右側の集計表ヘッダー行のデザイン(G1:H1)
-            batch.format_cell_range(sheet, "G1:H1", header_format)
+            batch.format_cell_range(sheet, "G1:I1", header_format)
 
             # ③集計表の中身（G2:H4）のデザイン
             summary_body_format = CellFormat(
@@ -261,7 +290,7 @@ def main():
                 horizontalAlignment="CENTER",
                 borders=all_borders
             )
-            batch.format_cell_range(sheet, "G2:H4", summary_body_format)
+            batch.format_cell_range(sheet, "G2:I6", summary_body_format)
 
             # 合計行(G4:H4)だけ太文字にする
             total_row_format = CellFormat(
@@ -269,7 +298,7 @@ def main():
                 textFormat=textFormat(bold=True, fontSize=10),
                 borders=all_borders
             )
-            batch.format_cell_range(sheet, "G4:H4", total_row_format)
+            batch.format_cell_range(sheet, "G2:G6", total_row_format)
             
             pairs = []
             
@@ -293,18 +322,18 @@ def main():
             if pairs:
                 batch.format_cell_ranges(sheet, pairs)
         
-        # 集計表の数値を書き込み
-        sheet.update(values=summary_table, range_name="G1:H4")
+        
         
         print("シートの説明文を書き込んでいます...")
 
         # シートG6～G11まで文字を流し込む
-        sheet.update_acell('G6', 'このシートについて')
-        sheet.update_acell('G7', '※このシートはPythonで作られています。')
-        sheet.update_acell('G8', '※表を確認し、編集に取り組んでください。緑色は編集完了、赤色は未編集です。')
-        sheet.update_acell('G9', '※確認URLをクリックしますと、状況を確認することができます。')
-        sheet.update_acell('G10', '※シートはいじらないようにしてください。編集完了するとDeveloperが自動更新します。')
-        sheet.update_acell('G11', '※右の表を確認しますと、進捗状況と件数を確認することができます。')
+        
+        sheet.update_acell('G8', 'このシートについて')
+        sheet.update_acell('G9', '※このシートはPythonで作られています。')
+        sheet.update_acell('G10', '※シートを確認し、編集に取り組んでください。編集完了は緑色、未編集は赤色になっています。')
+        sheet.update_acell('G11', '※確認URLをクリックしますと、状況を確認することができます。')
+        sheet.update_acell('G12', '※このシートは手動で編集しないでください。開発者が自動更新します。')
+        sheet.update_acell('G13', '※右側には進捗状況表の件数と合計を確認できます。')
 
         print("説明文のデザインを整えています...")
         
@@ -316,11 +345,12 @@ def main():
             backgroundColor=color(1.0, 1.0, 1.0),  # 白背景
             textFormat=textFormat(foregroundColor=color(0.0, 0.0, 0.0))
         )
+        
 
         # 6行目を黄色見出し、7〜11行目を白背景に装飾
         format_cell_ranges(sheet, [
-            ("G6:L6", info_header_format),
-            ("G7:L11", info_body_format)
+            ("G8:L8", info_header_format),
+            ("G9:L11", info_body_format),
         ])
     
         print("説明文の自動生成が全て完了しました！")
@@ -341,5 +371,5 @@ def main():
     except Exception as e:
         print(f"スプレッドシート処理エラー: {e}")
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     main()

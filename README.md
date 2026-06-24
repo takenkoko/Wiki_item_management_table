@@ -1,5 +1,7 @@
 # Wiki_item_management_table(ver.02)
 
+バージョン01→バージョン02に更新しました。
+
 開発成果
 
 - 9種類のJSONファイルを統合

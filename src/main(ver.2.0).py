@@ -35,7 +35,7 @@ spreadsheet = gc.open_by_key(SPREADSHEET_ID)
 #======================
 workbook=gc.open_by_key(SPREADSHEET_ID)
 
-new_title="未処理リスト Ver0.2"
+new_title="未処理リスト Ver2.0"
 workbook.update_title(new_title)
 
 print(f"スプレッドシートの名前を{new_title}に変更しました。")

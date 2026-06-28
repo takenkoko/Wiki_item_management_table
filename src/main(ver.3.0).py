@@ -171,7 +171,7 @@ def exctract_all_items_from_file(file_path, category_name):
             wiki_url
         ])
 
-    # 💡 正しいインデント位置に戻したため、return の波線も消えます！
+    # 正しいインデント位置に戻したため、return の波線も消えます！
     return file_data
 
 
@@ -203,7 +203,7 @@ def main():
     count_done = 0
     count_todo = 0
     for row in all_items_list:
-        if row[3] == "完了":
+        if row[4] == "完了":
             count_done += 1
         else:
             count_todo += 1
@@ -218,9 +218,9 @@ def main():
     except Exception as e:
         print(f"接続・承認エラー: {e}")
         return
-    
+    #ヘッダーを変更しました
     try:
-        header = [["ID", "名前", "カテゴリ", "状況", "確認URL"]]
+        header = [["ID","公開日","名前", "カテゴリ", "状況", "確認URL"]]
         all_rows = header + all_items_list
 
         sheet.clear()
@@ -233,7 +233,7 @@ def main():
         update_time=datetime.now().strftime("%Y/%m/%d %H:%M")
         
         #グラフ化の定義
-        filled=int(progress_rate//10)
+        filled=int(progress_rate/10)
         progress_bar="█"*filled+"░"*(10-filled)
         
         summary_table = [
@@ -260,13 +260,13 @@ def main():
         todo_rows = []
 
         for idx, row_data in enumerate(all_items_list, start=2):
-            if row_data[3] == "完了":
+            if row_data[4] == "完了":
                 done_rows.append(idx)
             else:
                 todo_rows.append(idx)
         
         # 集計表の数値を書き込み
-        sheet.update(values=summary_table, range_name="G1:I6")        
+        sheet.update(values=summary_table, range_name="H1:I6")        
 
         #batch_updaterを使用した一括リクエスト（バルク処理）へ最適化
         with batch_updater(sheet.spreadsheet) as batch:
@@ -278,27 +278,27 @@ def main():
                 horizontalAlignment="CENTER",
                 borders=all_borders
             )
-            batch.format_cell_range(sheet, "A1:E1", header_format)
+            batch.format_cell_range(sheet, "A1:F1", header_format)
 
             # ②右側の集計表ヘッダー行のデザイン(G1:H1)
-            batch.format_cell_range(sheet, "G1:I1", header_format)
+            batch.format_cell_range(sheet, "H1:J1", header_format)
 
             # ③集計表の中身（G2:H4）のデザイン
             summary_body_format = CellFormat(
                 backgroundColor=color(1.0, 1.0, 1.0),
-                textFormat=textFormat(bold=False, fontSize=10),
+                textFormat=textFormat(foregroundColor=color(0.0, 0.0, 0.0),bold=False, fontSize=10),
                 horizontalAlignment="CENTER",
                 borders=all_borders
             )
-            batch.format_cell_range(sheet, "G2:I6", summary_body_format)
+            batch.format_cell_range(sheet, "H2:I6", summary_body_format)
 
             # 合計行(G4:H4)だけ太文字にする
             total_row_format = CellFormat(
                 backgroundColor=color(0.95, 0.95, 0.95),
-                textFormat=textFormat(bold=True, fontSize=10),
+                textFormat=textFormat(foregroundColor=color(0.0, 0.0, 0.0),bold=True, fontSize=10),
                 borders=all_borders
             )
-            batch.format_cell_range(sheet, "G2:G6", total_row_format)
+            batch.format_cell_range(sheet, "H2:H6", total_row_format)
             
             pairs = []
             
@@ -307,16 +307,16 @@ def main():
                 center_green = CellFormat(backgroundColor=GREEN_BG, horizontalAlignment="CENTER", borders=all_borders)
                 left_green = CellFormat(backgroundColor=GREEN_BG, horizontalAlignment="LEFT", borders=all_borders)
                 for r in done_rows:
-                    pairs.append((f"A{r}:D{r}", center_green))
-                    pairs.append((f"E{r}", left_green))
+                    pairs.append((f"A{r}:E{r}", center_green))
+                    pairs.append((f"F{r}", left_green))
 
             # 「未完了」の行をリストに追加
             if todo_rows:
                 center_red = CellFormat(backgroundColor=RED_BG, horizontalAlignment="CENTER", borders=all_borders)
                 left_red = CellFormat(backgroundColor=RED_BG, horizontalAlignment="LEFT", borders=all_borders)
                 for r in todo_rows:
-                    pairs.append((f"A{r}:D{r}", center_red))
-                    pairs.append((f"E{r}", left_red))
+                    pairs.append((f"A{r}:E{r}", center_red))
+                    pairs.append((f"F{r}", left_red))
 
             # 正式なフォーマットオブジェクトが1件でもあればGoogleへ送信
             if pairs:
@@ -326,14 +326,14 @@ def main():
         
         print("シートの説明文を書き込んでいます...")
 
-        # シートG6～G11まで文字を流し込む
+        # シートH6～L11まで文字を流し込む
         
-        sheet.update_acell('G8', 'このシートについて')
-        sheet.update_acell('G9', '※このシートはPythonで作られています。')
-        sheet.update_acell('G10', '※シートを確認し、編集に取り組んでください。編集完了は緑色、未編集は赤色になっています。')
-        sheet.update_acell('G11', '※確認URLをクリックしますと、状況を確認することができます。')
-        sheet.update_acell('G12', '※このシートは手動で編集しないでください。開発者が自動更新します。')
-        sheet.update_acell('G13', '※右側には進捗状況表の件数と合計を確認できます。')
+        sheet.update_acell('H8', 'このシートについて')
+        sheet.update_acell('H9', '※このシートはPythonで作られています。')
+        sheet.update_acell('H10', '※シートを確認し、編集に取り組んでください。編集完了は緑色、未編集は赤色になっています。')
+        sheet.update_acell('H11', '※確認URLをクリックしますと、状況を確認することができます。')
+        sheet.update_acell('H12', '※このシートは手動で編集しないでください。開発者が自動更新します。')
+        sheet.update_acell('H13', '※右側には進捗状況表の件数と合計を確認できます。')
 
         print("説明文のデザインを整えています...")
         
@@ -349,8 +349,8 @@ def main():
 
         # 6行目を黄色見出し、7〜11行目を白背景に装飾
         format_cell_ranges(sheet, [
-            ("G8:L8", info_header_format),
-            ("G9:L11", info_body_format),
+            ("H8:M8", info_header_format),
+            ("H9:M11", info_body_format),
         ])
     
         print("説明文の自動生成が全て完了しました！")
@@ -361,7 +361,7 @@ def main():
         # Discordへ通知を飛ばします
         send_discord_notification(success_msg)
         
-        spreadsheet_url = f"https://docs.google.com/spreadsheets/d/1ufrU34QtaIDT4iGYmkE27PltBDB6yuWO00kZpurcUuo/edit?gid=0#gid=0"
+        spreadsheet_url = f"https://https://google.com"
         print(f"➡スプレッドシートを確認する{spreadsheet_url}")
 
         # Discord送信用
